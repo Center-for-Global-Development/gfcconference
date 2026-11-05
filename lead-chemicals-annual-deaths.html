@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en" data-cgd-interactive-name="lead-chemicals-annual-deaths">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Annual deaths from lead, other chemicals and other causes</title>
+<!-- Sofia Pro from CGD's Adobe Fonts kit (the same kit the CGD GitHub figures use). It only loads on
+     domains the kit allows (CGD's GitHub Pages and cgdev.org); elsewhere the font falls back. -->
+<link rel="stylesheet" href="https://use.typekit.net/ymp6ujv.css" />
+<style>
+/* Tokens copied from CGD's shared figure stylesheet (shared/cgd-figure.css), so this
+   figure matches the house set. If it is added to a repo that already has shared/, link
+   that file instead and delete this :root block. */
+:root {
+  --cgd-teal: #0B4C5B; --cgd-light-teal: #006970; --cgd-gold: #FFB52C; --cgd-light-gold: #FEE8BF;
+  --cgd-teal-gray: #85A5AD; --cgd-blue: #2D99B5; --cgd-light-blue: #BFDEE0; --cgd-light-gray: #DFE0E2;
+  --cgd-dark-gray: #394649; --cgd-teal-black: #1A272A; --cgd-white: #FFFFFF; --cgd-offwhite: #F8FAFB;
+  --border: #D9E1E4;
+  --font-sans: "sofia-pro", "Sofia Pro", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --title-size-desktop: 24px; --title-size-tablet: 22px; --title-size-mobile: 20px; --title-size-fullscreen: 30px;
+  --subtitle-size: 13.5px; --label-size: 12px; --body-size: 12px; --note-size: 10.8px; --legend-size: 12px;
+  --fs-floor: 10px; --figure-max-width: 930px; --figure-pad: 13px; --icon-btn: 30px;
+  --label-col: 250px; --bar-h: 22px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: transparent; color: var(--cgd-teal-black); font-family: var(--font-sans); }
+html { scrollbar-gutter: stable; }
+body { font-size: var(--body-size); }
+.viz-wrapper { position: relative; width: 100%; max-width: var(--figure-max-width); margin: 0 auto;
+  padding: var(--figure-pad); background: transparent; color: var(--cgd-teal-black); }
+.fullscreen-btn { position: absolute; top: var(--figure-pad); right: var(--figure-pad); z-index: 2; width: var(--icon-btn); height: var(--icon-btn); border: 1px solid var(--border);
+  background: var(--cgd-white); color: var(--cgd-teal); border-radius: 8px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; }
+.fullscreen-btn:hover, .fullscreen-btn:focus-visible { border-color: var(--cgd-teal-gray); outline: none;
+  box-shadow: 0 0 0 3px rgba(11, 76, 91, 0.10); }
+.fullscreen-btn .icon-compress { display: none; }
+.viz-wrapper:fullscreen { max-width: none; width: 100%; min-height: 100vh; overflow-y: auto; padding: 22px; background: var(--cgd-white); }
+.viz-wrapper:fullscreen .fullscreen-btn { top: 22px; right: 22px; }
+.viz-wrapper:fullscreen .fullscreen-btn .icon-expand { display: none; }
+.viz-wrapper:fullscreen .fullscreen-btn .icon-compress { display: block; }
+.viz-wrapper:fullscreen .tooltip { position: fixed; }
+:where(.viz-wrapper) :focus-visible { outline: 2px solid var(--cgd-teal); outline-offset: 1px; }
+
+/* ------------------------------------------------------------ chart marks */
+.chart { display: grid; grid-template-columns: var(--label-col) minmax(0, 1fr); column-gap: 16px; row-gap: 11px; align-items: center; }
+.row-label { font-size: 13px; line-height: 1.22; color: var(--cgd-teal-black); }
+.row-label.lead { }
+/* what the bars measure: a column heading over the bars, so it reads as the unit of every number */
+.col-head { grid-column: 2; margin-right: 44px; padding: 4px 0 7px; border-bottom: 1px solid var(--border); margin-bottom: 1px;
+  color: var(--cgd-teal); font-size: 17px; font-weight: 700; line-height: 1.2; }
+.track { display: flex; align-items: center; min-width: 0; }
+.scale { position: relative; flex: 0 0 auto; width: calc(100% - 62px); display: flex; align-items: center; }
+.bar, .seg { height: var(--bar-h); cursor: default; transition: opacity .15s ease; }
+.bar { border-radius: 0 4px 4px 0; min-width: 2px; }
+.val { flex: 0 0 auto; margin-left: 7px; font-size: 12.5px; font-weight: 700; color: var(--cgd-teal-black); white-space: nowrap; }
+.val.lead { font-size: 14px; }
+.sep { grid-column: 1 / -1; height: 0; border-top: 1px dashed var(--cgd-teal-gray); margin: 4px 0; opacity: .8; }
+.nodata { width: 100%; height: 34px; border-radius: 4px; background: var(--cgd-light-gray); display: flex; align-items: center;
+  padding: 0 12px; color: var(--cgd-teal); font-weight: 700; font-size: 14px; cursor: default; }
+.stack { display: flex; align-items: stretch; height: var(--bar-h); }
+.seg + .seg { margin-left: 2px; }
+.seg:last-child { border-radius: 0 4px 4px 0; }
+.sum-legend { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: -3px;
+  font-size: var(--legend-size); color: var(--cgd-teal-black); line-height: 1.2; }
+.sum-item { display: inline-flex; align-items: center; gap: 5px; padding: 2px 3px; border-radius: 5px; cursor: default; min-height: 24px; }
+.sum-item:hover, .sum-item:focus-visible { background: var(--cgd-offwhite); }
+.sum-item b { font-weight: 700; }
+.sw { width: 11px; height: 11px; border-radius: 2px; flex: 0 0 auto; }
+.dim { opacity: .28; }
+.tooltip { position: absolute; z-index: 10; pointer-events: none; max-width: 270px; background: var(--cgd-white);
+  border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 14px rgba(26, 39, 42, .14);
+  padding: 8px 10px; font-size: 12px; line-height: 1.35; color: var(--cgd-teal-black); }
+.tooltip .tt-title { font-weight: 700; color: var(--cgd-teal); margin-bottom: 2px; }
+.tooltip .tt-value { font-size: 15px; font-weight: 700; }
+.tooltip .tt-src { margin-top: 4px; color: var(--cgd-dark-gray); font-size: var(--note-size); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 760px) { :root { --label-col: 190px; } }
+@media (max-width: 600px) {
+  .chart { grid-template-columns: minmax(0, 1fr); row-gap: 4px; }
+  .row-label { margin-top: 8px; }
+  .sep { margin: 10px 0 2px; }
+  .sum-legend { grid-column: 1; margin-top: 4px; }
+  .col-head { grid-column: 1; margin-right: 0; }
+  .col-spacer { display: none; }
+  .scale { width: calc(100% - 56px); }
+  .fullscreen-btn { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="vizRoot" class="viz-wrapper">
+  <button class="fullscreen-btn" id="fullscreenBtn" type="button" aria-label="View fullscreen" title="View fullscreen">
+      <svg class="icon-expand" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="icon-compress" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 3v5H3M16 3v5h5M8 21v-5H3M16 21v-5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <div class="chart" id="chart" role="figure" aria-label="Bar chart of annual deaths"></div>
+
+  <table class="sr-only" id="dataTable"><caption>Annual deaths</caption><thead><tr><th>Cause</th><th>Deaths a year</th><th>Year</th><th>Source</th></tr></thead><tbody></tbody></table>
+
+
+  <div class="tooltip" id="tooltip" hidden></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const C = { lead: '#006970', chem: '#85A5AD' };
+  const VMAX = 3500000;
+  const chemicals = [
+    { id: 'lead', label: 'Lead', v: 3500000, year: '2023', src: 'GBD 2023 Lead Collaborators (2026), JAMA', lead: true },
+    { id: 'dust', label: 'Workplace dusts, gases and fumes', v: 524290, year: '2019', src: 'WHO (2021)' },
+    { id: 'carc', label: 'Workplace carcinogens', v: 350325, year: '2019', src: 'WHO (2021). Includes arsenic, asbestos, benzene, beryllium, cadmium, chromium, diesel exhaust, formaldehyde, nickel, silica, sulphuric acid and trichloroethylene' },
+    { id: 'pois', label: 'Acute poisonings', v: 199354, year: '2019', src: 'WHO (2021). Unintentional poisonings and pesticides in self-harm' },
+    { id: 'birth', label: 'Chemicals causing birth defects', v: 26643, year: '2019', src: 'WHO (2021)' }
+  ];
+  const others = [
+    { id: 'road', label: 'Road crashes', v: 1190000, colour: '#FFB52C', year: '2021', src: 'WHO (2023), Global status report on road safety' },
+    { id: 'hiv', label: 'HIV/AIDS', v: 630000, colour: '#2D99B5', year: '2023', src: 'UNAIDS (2024)' },
+    { id: 'mal', label: 'Malaria', v: 597000, colour: '#FEE8BF', year: '2023', src: 'WHO (2024), World malaria report' },
+    { id: 'war', label: 'Wars', v: 154000, colour: '#394649', year: '2023', src: 'UCDP, all organised violence (Davies et al. 2024)' },
+    { id: 'dis', label: 'Natural disasters', v: 86473, colour: '#BFDEE0', year: '2023', src: 'CRED/EM-DAT (2024), preliminary' }
+  ];
+  const otherTotal = others.reduce((s, d) => s + d.v, 0);
+
+  const fmtShort = v => v >= 1e6 ? (+(v / 1e6).toFixed(2)) + 'm' : Math.round(v / 1000) + 'k';
+  const fmtLong = v => v >= 1e6 ? (+(v / 1e6).toFixed(2)) + ' million' : new Intl.NumberFormat('en-GB').format(Math.round(v / 1000) * 1000);
+  const fmtTotal = v => (+(v / 1e6).toFixed(1)) + 'm';
+  const pct = v => (v / VMAX * 100).toFixed(3) + '%';
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+
+  const chart = document.getElementById('chart');
+  const tooltip = document.getElementById('tooltip');
+  const root = document.getElementById('vizRoot');
+  const tbody = document.querySelector('#dataTable tbody');
+
+  function addRowToTable(label, v, year, src) {
+    const tr = document.createElement('tr');
+    [label, v === null ? 'No global estimate' : fmtLong(v), year, src].forEach(t => { const td = document.createElement('td'); td.textContent = t; tr.appendChild(td); });
+    tbody.appendChild(tr);
+  }
+
+  function tipHTML(title, value, src) {
+    return '<div class="tt-title">' + title + '</div>' + (value ? '<div class="tt-value">' + value + '</div>' : '') + (src ? '<div class="tt-src">' + src + '</div>' : '');
+  }
+
+  function bindTip(node, html, group) {
+    node.tabIndex = 0;
+    const show = ev => {
+      tooltip.innerHTML = html; tooltip.hidden = false; place(ev);
+      if (group) highlight(group);
+    };
+    const hide = () => { tooltip.hidden = true; if (group) highlight(null); };
+    node.addEventListener('mouseenter', show);
+    node.addEventListener('mousemove', place);
+    node.addEventListener('mouseleave', hide);
+    node.addEventListener('focus', show);
+    node.addEventListener('blur', hide);
+    node.addEventListener('click', show);   // tap on touch screens
+  }
+
+  function place(ev) {
+    if (tooltip.hidden) return;
+    const r = root.getBoundingClientRect();
+    let x, y;
+    if (ev && 'clientX' in ev && ev.clientX) { x = ev.clientX - r.left + 14; y = ev.clientY - r.top + 14; }
+    else { const t = ev.target.getBoundingClientRect(); x = t.left - r.left; y = t.bottom - r.top + 8; }
+    const w = tooltip.offsetWidth, h = tooltip.offsetHeight;
+    if (x + w > r.width - 8) x = Math.max(8, x - w - 28);
+    // the figure ends at the legend, so flip the tooltip above the pointer rather than let the iframe clip it
+    if (y + h > r.height - 4) y = Math.max(4, y - h - 28);
+    tooltip.style.left = x + 'px'; tooltip.style.top = y + 'px';
+  }
+
+  // highlight one part of the comparison bar and its legend entry
+  function highlight(id) {
+    document.querySelectorAll('[data-part]').forEach(n => n.classList.toggle('dim', id !== null && n.dataset.part !== id));
+  }
+
+  // ---- column heading over the bars
+  chart.appendChild(el('div', 'col-spacer'));
+  chart.appendChild(el('div', 'col-head', 'Annual deaths'));
+
+  // ---- counted chemicals
+  chemicals.forEach(d => {
+    chart.appendChild(el('div', 'row-label' + (d.lead ? ' lead' : ''), d.label));
+    const track = el('div', 'track'); const scale = el('div', 'scale');
+    const bar = el('div', 'bar'); bar.style.width = pct(d.v); bar.style.background = d.lead ? C.lead : C.chem;
+    bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', d.label + ': ' + fmtLong(d.v) + ' deaths a year');
+    scale.appendChild(bar); track.appendChild(scale);
+    scale.appendChild(el('span', 'val' + (d.lead ? ' lead' : ''), fmtShort(d.v)));
+    chart.appendChild(track);
+    bindTip(bar, tipHTML(d.label, fmtLong(d.v) + ' deaths a year', d.year + '. ' + d.src));
+    addRowToTable(d.label, d.v, d.year, d.src);
+  });
+
+  // ---- the chemicals nobody has counted
+  chart.appendChild(el('div', 'sep'));
+  chart.appendChild(el('div', 'row-label', 'The other ~350,000 chemicals and mixtures in use'));
+  const ndTrack = el('div', 'track'); const ndScale = el('div', 'scale');
+  const nd = el('div', 'nodata', 'Not enough data');
+  nd.setAttribute('role', 'img'); nd.setAttribute('aria-label', 'The other chemicals and mixtures in use: not enough data for a global death estimate');
+  ndScale.appendChild(nd); ndTrack.appendChild(ndScale); chart.appendChild(ndTrack);
+  bindTip(nd, tipHTML('No global death estimate', null, 'Most of the ~350,000 chemicals and mixtures registered for use have too little data to count their toll. Source: Wang et al. (2020).'));
+  addRowToTable('The other ~350,000 chemicals and mixtures in use', null, '', 'Wang et al. (2020)');
+
+  // ---- for scale: other big killers, added together
+  chart.appendChild(el('div', 'sep'));
+  chart.appendChild(el('div', 'row-label', 'HIV, malaria, wars, natural disasters and road crashes, combined'));
+  const sTrack = el('div', 'track'); const sScale = el('div', 'scale'); const stack = el('div', 'stack');
+  stack.style.width = pct(otherTotal);
+  others.forEach(d => {
+    const seg = el('div', 'seg'); seg.dataset.part = d.id;
+    seg.style.flex = d.v + ' 1 0'; seg.style.background = d.colour;
+    seg.setAttribute('role', 'img'); seg.setAttribute('aria-label', d.label + ': ' + fmtLong(d.v) + ' deaths a year');
+    stack.appendChild(seg);
+    bindTip(seg, tipHTML(d.label, fmtLong(d.v) + ' deaths a year', d.year + '. ' + d.src), d.id);
+  });
+  sScale.appendChild(stack); sScale.appendChild(el('span', 'val', fmtTotal(otherTotal)));
+  sTrack.appendChild(sScale); chart.appendChild(sTrack);
+
+  // legend for the parts of the combined bar
+  const legend = el('div', 'sum-legend'); legend.setAttribute('aria-label', 'Parts of the combined bar');
+  others.forEach(d => {
+    const item = el('span', 'sum-item'); item.dataset.part = d.id;
+    const sw = el('span', 'sw'); sw.style.background = d.colour;
+    if (d.colour === '#FEE8BF' || d.colour === '#BFDEE0') sw.style.boxShadow = 'inset 0 0 0 1px rgba(26,39,42,.18)';
+    item.appendChild(sw); item.appendChild(el('span', '', d.label + ' <b>' + fmtShort(d.v) + '</b>'));
+    legend.appendChild(item);
+    bindTip(item, tipHTML(d.label, fmtLong(d.v) + ' deaths a year', d.year + '. ' + d.src), d.id);
+    addRowToTable(d.label, d.v, d.year, d.src);
+  });
+  chart.appendChild(legend);
+
+  document.addEventListener('click', ev => { if (!ev.target.closest('.bar, .seg, .nodata, .sum-item')) { tooltip.hidden = true; highlight(null); } });
+
+  // ---- fullscreen
+  const fsBtn = document.getElementById('fullscreenBtn');
+  fsBtn.addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen(); else if (root.requestFullscreen) root.requestFullscreen();
+  });
+
+  // ---- tell the CGD page how tall the figure is (same message as CGD's shared/cgd-embed.js)
+  let lastH = 0;
+  function reportHeight() {
+    const h = Math.ceil(document.body.getBoundingClientRect().height);
+    if (!h || h === lastH || window.parent === window) return;
+    lastH = h;
+    let origin = 'https://www.cgdev.org';
+    try { const ref = new URL(document.referrer); if (ref.origin === 'https://center-for-global-development.github.io') origin = ref.origin; } catch (e) {}
+    window.parent.postMessage({ type: 'cgd-iframe-resize', height: h }, origin);
+  }
+  window.addEventListener('load', reportHeight);
+  window.addEventListener('resize', reportHeight);
+  if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.body);
+})();
+</script>
+</body>
+</html>
