@@ -21,10 +21,21 @@
   --subtitle-size: 13.5px; --label-size: 12px; --body-size: 12px; --note-size: 10.8px; --legend-size: 12px;
   --fs-floor: 10px; --figure-max-width: 930px; --figure-pad: 13px; --icon-btn: 30px;
   --label-col: 250px; --bar-h: 22px;
+  /* sizes the fit-to-frame step (below) can tighten */
+  --row-gap: 11px; --lab-size: 13px; --val-size: 12.5px; --head-size: 17px; --nodata-h: 34px; --nodata-size: 14px;
+  --sep-gap: 4px; --item-h: 24px; --lab-lh: 1.22;
 }
+/* CGD's site embeds figures at a fixed height and ignores resize messages, so when the frame is
+   too short for the layout (mostly on phones) the script steps down through these tighter sizes. */
+html[data-fit="1"] { --bar-h: 18px; --row-gap: 8px; --nodata-h: 28px; --sep-gap: 2px; --item-h: 20px; --figure-pad: 10px; }
+html[data-fit="2"] { --bar-h: 15px; --row-gap: 6px; --lab-size: 12px; --val-size: 11.5px; --head-size: 15px; --nodata-h: 24px;
+  --nodata-size: 12.5px; --legend-size: 11px; --sep-gap: 1px; --item-h: 18px; --figure-pad: 8px; --lab-lh: 1.15; }
+html[data-fit="3"] { --bar-h: 14px; --row-gap: 5px; --lab-size: 12px; --val-size: 11px; --head-size: 14.5px; --nodata-h: 22px;
+  --nodata-size: 12px; --legend-size: 10.5px; --sep-gap: 0px; --item-h: 17px; --figure-pad: 7px; --lab-lh: 1.12; }
+html[data-fit="4"] { --bar-h: 12px; --row-gap: 4px; --lab-size: 11.5px; --val-size: 11px; --head-size: 14px; --nodata-h: 20px;
+  --nodata-size: 12px; --legend-size: 10.5px; --sep-gap: 0px; --item-h: 16px; --figure-pad: 6px; --lab-lh: 1.1; }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: transparent; color: var(--cgd-teal-black); font-family: var(--font-sans); }
-html { scrollbar-gutter: stable; }
 body { font-size: var(--body-size); }
 .viz-wrapper { position: relative; width: 100%; max-width: var(--figure-max-width); margin: 0 auto;
   padding: var(--figure-pad); background: transparent; color: var(--cgd-teal-black); }
@@ -42,27 +53,27 @@ body { font-size: var(--body-size); }
 :where(.viz-wrapper) :focus-visible { outline: 2px solid var(--cgd-teal); outline-offset: 1px; }
 
 /* ------------------------------------------------------------ chart marks */
-.chart { display: grid; grid-template-columns: var(--label-col) minmax(0, 1fr); column-gap: 16px; row-gap: 11px; align-items: center; }
-.row-label { font-size: 13px; line-height: 1.22; color: var(--cgd-teal-black); }
+.chart { display: grid; grid-template-columns: var(--label-col) minmax(0, 1fr); column-gap: 16px; row-gap: var(--row-gap); align-items: center; }
+.row-label { font-size: var(--lab-size); line-height: var(--lab-lh); color: var(--cgd-teal-black); }
 .row-label.lead { }
 /* what the bars measure: a column heading over the bars, so it reads as the unit of every number */
 .col-head { grid-column: 2; margin-right: 44px; padding: 4px 0 7px; border-bottom: 1px solid var(--border); margin-bottom: 1px;
-  color: var(--cgd-teal); font-size: 17px; font-weight: 700; line-height: 1.2; }
+  color: var(--cgd-teal); font-size: var(--head-size); font-weight: 700; line-height: 1.2; }
 .track { display: flex; align-items: center; min-width: 0; }
 .scale { position: relative; flex: 0 0 auto; width: calc(100% - 62px); display: flex; align-items: center; }
 .bar, .seg { height: var(--bar-h); cursor: default; transition: opacity .15s ease; }
 .bar { border-radius: 0 4px 4px 0; min-width: 2px; }
-.val { flex: 0 0 auto; margin-left: 7px; font-size: 12.5px; font-weight: 700; color: var(--cgd-teal-black); white-space: nowrap; }
-.val.lead { font-size: 14px; }
-.sep { grid-column: 1 / -1; height: 0; border-top: 1px dashed var(--cgd-teal-gray); margin: 4px 0; opacity: .8; }
-.nodata { width: 100%; height: 34px; border-radius: 4px; background: var(--cgd-light-gray); display: flex; align-items: center;
-  padding: 0 12px; color: var(--cgd-teal); font-weight: 700; font-size: 14px; cursor: default; }
+.val { flex: 0 0 auto; margin-left: 7px; font-size: var(--val-size); font-weight: 700; color: var(--cgd-teal-black); white-space: nowrap; }
+.val.lead { font-size: calc(var(--val-size) + 1.5px); }
+.sep { grid-column: 1 / -1; height: 0; border-top: 1px dashed var(--cgd-teal-gray); margin: var(--sep-gap) 0; opacity: .8; }
+.nodata { width: 100%; height: var(--nodata-h); border-radius: 4px; background: var(--cgd-light-gray); display: flex; align-items: center;
+  padding: 0 12px; color: var(--cgd-teal); font-weight: 700; font-size: var(--nodata-size); cursor: default; }
 .stack { display: flex; align-items: stretch; height: var(--bar-h); }
 .seg + .seg { margin-left: 2px; }
 .seg:last-child { border-radius: 0 4px 4px 0; }
-.sum-legend { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: -3px;
+.sum-legend { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 0 14px; margin-top: calc(var(--row-gap) * -0.4);
   font-size: var(--legend-size); color: var(--cgd-teal-black); line-height: 1.2; }
-.sum-item { display: inline-flex; align-items: center; gap: 5px; padding: 2px 3px; border-radius: 5px; cursor: default; min-height: 24px; }
+.sum-item { display: inline-flex; align-items: center; gap: 5px; padding: 2px 3px; border-radius: 5px; cursor: default; min-height: var(--item-h); }
 .sum-item:hover, .sum-item:focus-visible { background: var(--cgd-offwhite); }
 .sum-item b { font-weight: 700; }
 .sw { width: 11px; height: 11px; border-radius: 2px; flex: 0 0 auto; }
@@ -77,10 +88,10 @@ body { font-size: var(--body-size); }
 
 @media (max-width: 760px) { :root { --label-col: 190px; } }
 @media (max-width: 600px) {
-  .chart { grid-template-columns: minmax(0, 1fr); row-gap: 4px; }
-  .row-label { margin-top: 8px; }
-  .sep { margin: 10px 0 2px; }
-  .sum-legend { grid-column: 1; margin-top: 4px; }
+  .chart { grid-template-columns: minmax(0, 1fr); row-gap: calc(var(--row-gap) * 0.35); }
+  .row-label { margin-top: calc(var(--row-gap) * 0.7); }
+  .sep { margin: calc(var(--row-gap) * 0.9 + var(--sep-gap)) 0 calc(var(--sep-gap) * 0.5); }
+  .sum-legend { grid-column: 1; margin-top: calc(var(--row-gap) * 0.3); gap: 0 10px; }
   .col-head { grid-column: 1; margin-right: 0; }
   .col-spacer { display: none; }
   .scale { width: calc(100% - 56px); }
@@ -234,6 +245,23 @@ body { font-size: var(--body-size); }
   chart.appendChild(legend);
 
   document.addEventListener('click', ev => { if (!ev.target.closest('.bar, .seg, .nodata, .sum-item')) { tooltip.hidden = true; highlight(null); } });
+
+  // ---- fit to the frame. CGD's pages embed figures at a fixed height (they don't act on the
+  // resize message below), so if the layout is taller than the frame, step down to tighter sizes.
+  const html = document.documentElement;
+  function fit() {
+    html.dataset.fit = '0';
+    if (window.parent === window || document.fullscreenElement) return;   // opened directly, or fullscreen: no limit
+    const avail = window.innerHeight;
+    for (let lvl = 1; lvl <= 4 && Math.ceil(document.body.getBoundingClientRect().height) > avail; lvl++) html.dataset.fit = String(lvl);
+  }
+  let fitTimer;
+  const refit = () => { clearTimeout(fitTimer); fitTimer = setTimeout(fit, 60); };
+  fit();
+  window.addEventListener('resize', refit);
+  window.addEventListener('load', fit);
+  if (document.fonts) { if (document.fonts.ready) document.fonts.ready.then(fit); document.fonts.addEventListener && document.fonts.addEventListener('loadingdone', refit); }
+  document.addEventListener('fullscreenchange', fit);
 
   // ---- fullscreen
   const fsBtn = document.getElementById('fullscreenBtn');
